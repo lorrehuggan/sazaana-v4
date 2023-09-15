@@ -14,19 +14,21 @@ export default async function Nav() {
   const session = await getServerSession(authOptions)
 
   return (
-    <nav className="flex justify-between items-center px-8 h-14">
-      <div>
-        <MainMenu />
-      </div>
-      <div className="flex gap-2 items-center">
+    <nav className="flex justify-between items-center h-14">
+      <div className="container flex justify-between items-center">
         <div>
-          {!session ?
-            <a href='/signin' className="text-xs font-bold text-primary">Sign In </a>
-            :
-            <UserMenu session={session} />
-          }
+          <MainMenu />
         </div>
-        {session && <SignOutButton />}
+        <div className="flex gap-2 items-center">
+          <div>
+            {!session ?
+              <a href='/signin' className="text-xs font-bold text-primary">Sign In </a>
+              :
+              <UserMenu session={session} />
+            }
+          </div>
+          {session && <SignOutButton />}
+        </div>
       </div>
     </nav>
   )

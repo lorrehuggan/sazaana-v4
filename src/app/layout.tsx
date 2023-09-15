@@ -2,6 +2,8 @@ import Nav from '@/components/app/nav'
 import './globals.css'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+import QueryClientProvider from '@/lib/providers/queryProvider'
+
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -10,6 +12,7 @@ export const metadata: Metadata = {
   description: 'Generating the bes playlist for you',
 }
 
+
 export default function RootLayout({
   children,
 }: {
@@ -17,10 +20,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className}`}>
-        <Nav />
-        {children}
-      </body>
+      <QueryClientProvider>
+        <body className={`${inter.className} min-h-screen`}>
+          <Nav />
+          {children}
+        </body>
+      </QueryClientProvider>
     </html>
   )
 }

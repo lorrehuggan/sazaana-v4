@@ -15,7 +15,7 @@ export default function MainMenu() {
       <SheetTrigger asChild>
         <Menu size={20} className="cursor-pointer stroke-primary" />
       </SheetTrigger>
-      <SheetContent side='top' className="h-screen bg-secondary">
+      <SheetContent side='top' className="h-2/5 bg-secondary">
         <SheetHeader>
           <SheetTitle>Are you sure absolutely sure?</SheetTitle>
           <SheetDescription>
