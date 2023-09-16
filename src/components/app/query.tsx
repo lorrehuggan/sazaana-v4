@@ -113,7 +113,7 @@ export default function Query() {
             onChange={handleOnChange}
             autoComplete="off"
             name="query"
-            placeholder={lastSearch ? `${lastSearch}` : "Search for an artist"}
+            placeholder={currentArtist.artistName ? `${currentArtist.artistName}` : "Search for an artist"}
             className="flex py-2 pr-3 w-full h-10 text-base rounded-md border-b lg:text-xl focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed bg-background placeholder:text-muted-foreground" />
           <Button disabled={loading} className="border-b" type="submit" size='icon' variant='ghost'>
             {loading ? <Spinner /> : <Search />}
@@ -129,7 +129,7 @@ export default function Query() {
         <ScrollArea className="py-2 w-full h-52 border-b" ref={results}>
           {data.artists.items.map((artist, i) => (
             <div onClick={() => handleOnClick(artist)} key={artist.id}>
-              <a className={clsx("flex justify-between group items-center p-2 rounded cursor-pointer", {
+              <a href={`/artist/${artist.id}`} className={clsx("flex justify-between group items-center p-2 rounded cursor-pointer", {
                 "bg-muted/10": i % 2 === 0,
               })}>
                 {/* eslint-disable */}
