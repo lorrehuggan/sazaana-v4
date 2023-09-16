@@ -23,7 +23,7 @@ export const useCurrentArtists = create<initialState & Actions>()(
     artists: [],
     add: (artist: Spotify.ArtistObjectFull) => set(state => ({ artists: [...state.artists, artist] })),
     remove: (id: string) => set(state => ({ artists: state.artists.filter(artist => artist.id !== id) })),
-    clear: () => set({ artists: [] }),
+    clear: () => set({ artists: [], artistID: '', artistName: '' }),
     set: (artists: Spotify.ArtistObjectFull[]) => set({ artists }),
     artistID: '',
     setID: (id: string) => set({ artistID: id }),

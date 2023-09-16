@@ -1,6 +1,5 @@
 "use client"
 import { useEffect, useMemo, useRef, useState } from "react"
-import { useRouter } from 'next/navigation'
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -14,9 +13,8 @@ import { AlertCircle, Loader, Search } from "lucide-react"
 import { Spinner } from "@nextui-org/react";
 import { debounce } from "@/lib/utils"
 import { useCurrentArtists } from "@/lib/stores/currentArtists"
-
-
-
+import { useCurrentQuery } from "@/lib/stores/query"
+import { ScrollShadow } from "@nextui-org/react";
 
 const schema = z.object({
   query: z.string()
@@ -28,15 +26,12 @@ const schema = z.object({
 type SearchFormValues = z.infer<typeof schema>
 
 export default function Query() {
-  const router = useRouter()
   const [data, setData] = useState<Spotify.ArtistSearchResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [queryValue, setQueryValue] = useState<string>('')
   const results = useRef<HTMLDivElement | null>(null)
-  const currentArtist = useCurrentArtists((state) => state)
-  const setCurrentArtistID = useCurrentArtists((state) => state.setID)
-  const setCurrentArtistName = useCurrentArtists((state) => state.setName)
-  const [lastSearch, setLastSearch] = useState<string | null>(null)
+  const CURRENT_ARTIST = useCurrentArtists((state) => state)
+  const SET_QUERY = useCurrentQuery((state) => state.set)
 
   const form = useForm<SearchFormValues>({
     resolver: zodResolver(schema),
@@ -44,6 +39,17 @@ export default function Query() {
       query: "",
     }
   })
+
+  useEffect(() => {
+    if (queryValue.length === 0) {
+      SET_QUERY(false)
+    }
+    else {
+      SET_QUERY(true)
+    }
+
+  }, [SET_QUERY, queryValue])
+
 
   async function onSubmit(values: SearchFormValues) {
     try {
@@ -71,21 +77,31 @@ export default function Query() {
   }
 
   function handleOnClick(artist: Spotify.ArtistObjectFull) {
-    currentArtist.add(artist)
-    setCurrentArtistID(artist.id)
-    setCurrentArtistName(artist.name)
+    let current = CURRENT_ARTIST.artists
+    if (current.length === 5) {
+      current.shift()
+      current.push(artist)
+      CURRENT_ARTIST.set(current)
+      CURRENT_ARTIST.setID(current[4].id)
+      CURRENT_ARTIST.setName(current[4].name)
+    } else {
+      CURRENT_ARTIST.add(artist)
+      CURRENT_ARTIST.setID(artist.id)
+      CURRENT_ARTIST.setName(artist.name)
+    }
     setQueryValue('')
     setData(null)
     form.reset()
-    router.push(`/artist/${artist.id}`)
   }
 
+  // Close dropdown when clicking outside of it
   useEffect(() => {
     const ref = results.current
     document.addEventListener('click', (e) => {
       if (ref && !ref.contains(e.target as Node)) {
         setData(null)
         setQueryValue('')
+        SET_QUERY(false)
         form.reset()
       }
     })
@@ -93,16 +109,12 @@ export default function Query() {
       if (ref && !ref.contains(e.target as Node)) {
         setData(null)
         setQueryValue('')
+        SET_QUERY(false)
         form.reset()
       }
     })
   })
 
-  useEffect(() => {
-    const artist: string = JSON.parse(localStorage.getItem('currentArtists')!).state.artistName
-    if (artist.length === 0) return
-    setLastSearch(artist)
-  }, [])
 
   return (
     <div className="container">
@@ -113,7 +125,7 @@ export default function Query() {
             onChange={handleOnChange}
             autoComplete="off"
             name="query"
-            placeholder={currentArtist.artistName ? `${currentArtist.artistName}` : "Search for an artist"}
+            placeholder={CURRENT_ARTIST.artistName ? `${CURRENT_ARTIST.artistName}` : "Search for an artist"}
             className="flex py-2 pr-3 w-full h-10 text-base rounded-md border-b lg:text-xl focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed bg-background placeholder:text-muted-foreground" />
           <Button disabled={loading} className="border-b" type="submit" size='icon' variant='ghost'>
             {loading ? <Spinner /> : <Search />}
@@ -126,10 +138,10 @@ export default function Query() {
           </p>}
       </Form>
       {data && data.artists.items.length > 0 && queryValue.length > 1 &&
-        <ScrollArea className="py-2 w-full h-52 border-b" ref={results}>
+        <ScrollShadow hideScrollBar className="pb-2 w-full h-52">
           {data.artists.items.map((artist, i) => (
             <div onClick={() => handleOnClick(artist)} key={artist.id}>
-              <a href={`/artist/${artist.id}`} className={clsx("flex justify-between group items-center p-2 rounded cursor-pointer", {
+              <div className={clsx("flex justify-between group items-center p-2 rounded cursor-pointer hover:bg-neutral-800 color-fade", {
                 "bg-muted/10": i % 2 === 0,
               })}>
                 {/* eslint-disable */}
@@ -140,10 +152,10 @@ export default function Query() {
                     <h4 className="font-bold">{artist.name}</h4>
                   </div>
                 </div>
-              </a>
+              </div>
             </div>
           ))}
-        </ScrollArea>
+        </ScrollShadow>
       }
     </div>
   )

@@ -12,10 +12,12 @@ export async function GET(request: Request) {
     })
   }
 
+  console.log(trackIDs)
+
   const client_id = process.env.SPOTIFY_ID
   const client_secret = process.env.SPOTIFY_SECRET
 
-  const url = new URL(`https://api.spotify.com/v1/recommendations?limit=10&seed_artists=2YZyLoL8N0Wb9xBt1NhZWg%2C08GfvCW09pv2QP4y9sle2a`)
+  const url = new URL(`https://api.spotify.com/v1/recommendations?limit=10&seed_artists=${trackIDs}`)
 
   try {
     const requestAuthResponse = await fetch(spotify_auth_url, {
