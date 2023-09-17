@@ -34,5 +34,6 @@ export const useCurrentArtists = create<initialState & Actions>()(
 
   }), {
     name: 'currentArtists',
+    skipHydration: true,
   })
 )

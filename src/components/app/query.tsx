@@ -73,7 +73,7 @@ export default function Query() {
     if (e.target.value.length < 2) return
     if (e.target.value.length > 25) return
     if (e.target.value.length === 0) return setData(null)
-    debouncedSearch({ query: e.target.value })
+    // debouncedSearch({ query: e.target.value })
   }
 
   function handleOnClick(artist: Spotify.ArtistObjectFull) {
@@ -138,7 +138,7 @@ export default function Query() {
           </p>}
       </Form>
       {data && data.artists.items.length > 0 && queryValue.length > 1 &&
-        <ScrollShadow hideScrollBar className="pb-2 w-full h-52">
+        <ScrollShadow ref={results} hideScrollBar className="pb-2 w-full h-52">
           {data.artists.items.map((artist, i) => (
             <div onClick={() => handleOnClick(artist)} key={artist.id}>
               <div className={clsx("flex justify-between group items-center p-2 rounded cursor-pointer hover:bg-neutral-800 color-fade", {

@@ -3,6 +3,7 @@ import { spotify_auth_url, spotify_url } from "@/lib/spotify";
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
+  console.log('request')
   const { searchParams } = new URL(request.url)
   const artist = searchParams.get('artist')
   const track = searchParams.get('track')

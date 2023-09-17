@@ -34,5 +34,6 @@ export const useCurrentTracks = create<initialState & Actions>()(
     removeName: () => set({ trackName: '' }),
   }), {
     name: 'currentTracks',
+    skipHydration: true,
   })
 )

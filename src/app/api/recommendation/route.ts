@@ -12,8 +12,6 @@ export async function GET(request: Request) {
     })
   }
 
-  console.log(trackIDs)
-
   const client_id = process.env.SPOTIFY_ID
   const client_secret = process.env.SPOTIFY_SECRET
 
