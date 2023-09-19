@@ -2,7 +2,7 @@ import { convertMsToMinutesAndSeconds, debounce } from "@/lib/utils"
 import clsx from "clsx"
 import { DraggableProvided } from "react-beautiful-dnd"
 import { Howl, Howler } from "howler";
-import { Play } from "lucide-react";
+import { Disc3, Play } from "lucide-react";
 import { useAudioPlayer } from "@/lib/stores/audioPlayer";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -145,16 +145,21 @@ export default function Track({ provided, track, dragging, i }: Props) {
     })}>
       <div className="relative" onClick={() => playAudio(track.preview_url ?? '')}>
         {track.preview_url ? (
-          <Play size={24} className={clsx("absolute top-1/2 left-1/2 z-50 opacity-0 transition-all duration-300 ease-in-out transform -translate-x-1/2 -translate-y-1/2 cursor-pointer group-hover:opacity-100 mix-blend-difference", {
-            "opacity-100": AUDIO_PLAYER.trackDetails.id === track.id,
+          <Play size={24} className={clsx("absolute top-1/2 left-1/2 z-50 opacity-0 transition-all duration-300 ease-in-out transform -translate-x-1/2 -translate-y-1/2 cursor-pointer mix-blend-difference", {
+            "opacity-0": AUDIO_PLAYER.trackDetails.id === track.id,
+            "group-hover:opacity-100": AUDIO_PLAYER.trackDetails.id !== track.id,
           })} />
         ) : null}
-        <div className="overflow-hidden">
+        <div className="overflow-hidden bg-muted">
           { /* eslint-disable-next-line */}
-          <img src={track.album.images[1].url} alt={track.name} className={clsx("object-cover w-12 h-12 transition-all duration-300 ease-in-out cursor-pointer grayscale group-hover:grayscale-0 group-hover:blur-sm group-hover:opacity-25", {
-            "grayscale-0": dragging === track.id,
-            "blur-sm opacity-25": AUDIO_PLAYER.trackDetails.id === track.id,
-          })} />
+          {AUDIO_PLAYER.trackDetails.id === track.id ? (<div className={clsx("flex justify-center items-center w-12 h-12 transition-all duration-300 ease-in-out", {
+            "opacity-0": AUDIO_PLAYER.trackDetails.id !== track.id,
+          })}><Disc3 className="animate-spin" size={24} /></div>) :
+            (
+              <img src={track.album.images[1].url} alt={track.name} className={clsx("object-cover w-12 h-12 transition-all duration-300 ease-in-out cursor-pointer grayscale group-hover:bg-muted group-hover:opacity-0", {
+                "grayscale-0": dragging === track.id,
+              })} />
+            )}
         </div>
       </div>
       <div className="flex-1">
@@ -163,10 +168,10 @@ export default function Track({ provided, track, dragging, i }: Props) {
       <div className="flex-1">
         <a href={`/artist/${track.artists[0].id}`} className="inline-block text-sm cursor-pointer line-clamp-1 color-fade hover:text-stone-400">{track.artists[0].name}</a>
       </div>
-      <div className="flex-1">
+      <div className="hidden flex-1 sm:flex">
         <span className="text-sm line-clamp-1">{track.album.name}</span>
       </div>
-      <div className="flex gap-2 items-center">
+      <div className="hidden gap-2 items-center sm:flex">
         <span className="text-sm">{convertMsToMinutesAndSeconds(track.duration_ms)}</span>
       </div>
     </div>

@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   const client_id = process.env.SPOTIFY_ID
   const client_secret = process.env.SPOTIFY_SECRET
 
-  const url = new URL(`https://api.spotify.com/v1/recommendations?limit=10&seed_artists=${trackIDs}`)
+  const url = new URL(`https://api.spotify.com/v1/recommendations?limit=15&seed_artists=${trackIDs}`)
 
   try {
     const requestAuthResponse = await fetch(spotify_auth_url, {

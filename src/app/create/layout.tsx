@@ -22,9 +22,17 @@ export default function RootLayout({
 }) {
   return (
     <>
-      <div className="container my-8 space-y-2">
-        <H1>Discover Your Next Favorite Song</H1>
-        <H2>Unearth Your Next Beloved Artist,</H2>
+      <div className="container my-8 space-y-3">
+        {/* <H1>Discover Your Next Favorite Song</H1> */}
+        <H1>{`"Reveling the Threads of Sound"`}</H1>
+        {/* <H2>Unearth Your Next Beloved Artist,</H2> */}
+        <H2>Discover the Unseen Notes</H2>
+        <H4>Playlist Alchemy: Fuse Artists, Create Your Unique Sound</H4>
+        <p className='text-xs text-neutral-500'>{`Ready to turn 
+          your music experience into a sonic adventure? Unleash your inner DJ, crafting playlists from your favorite artists, 
+          and discover musical treasures like never before. With the power of strings and alchemy, 
+          you're in control of your sound journey. Mix, match, and create your unique soundtrack—no limits, just pure musical magic.`}`
+        </p>
       </div>
       <Query />
       <RecentSearch />

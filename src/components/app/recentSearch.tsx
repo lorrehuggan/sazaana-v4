@@ -2,7 +2,7 @@
 import { useCurrentArtists } from "@/lib/stores/currentArtists"
 import { useRouter } from 'next/navigation'
 import P from "../typography/P"
-import { Trash2, X } from "lucide-react"
+import { CornerLeftUp, MoveHorizontal, Trash2, X } from "lucide-react"
 import clsx from "clsx"
 import { useCurrentQuery } from "@/lib/stores/query"
 import { useCurrentTracks } from "@/lib/stores/tracks"
@@ -60,10 +60,17 @@ export default function RecentSearch() {
       'opacity-10 pointer-events-none': QUERY.open,
     })}>
       <div className="flex justify-between items-center">
-        <P className='font-bold text-neutral-500'>Tracklist Based On</P>
+        <div className="flex gap-1 items-center text-neutral-500">
+          {CURRENT_ARTISTS.artists.length < 5 ? (
+            <CornerLeftUp size={16} />)
+            :
+            (
+              <MoveHorizontal size={16} />
+            )}
+          <p className='text-sm font-bold text-neutral-500'>{CURRENT_ARTISTS.artists.length < 5 ? 'Fuse Another Artist' : 'Fusion Full Last Artist Will Be Removed'}</p>
+        </div>
         <div onClick={handleClearRecents}
           className="flex items-center text-xs uppercase cursor-pointer text-muted color-fade hover:text-danger">
-          <span>Clear</span>
           <Trash2 size={16} className="inline-block ml-1" />
         </div>
       </div>
@@ -76,7 +83,7 @@ export default function RecentSearch() {
               </div>
             )}
             {/* eslint-disable-next-line */}
-            <img src={artist.images[1].url} className={clsx("transition-all object-cover grayscale  duration-300 ease-in-out h-32 w-32", {
+            <img src={artist.images[1].url} className={clsx("transition-all object-cover grayscale  duration-300 ease-in-out h-32 min-w-[128px] w-32", {
               "opacity-10 cursor-pointer": CURRENT_ARTISTS.artistID !== artist.id,
               "hover:opacity-70": CURRENT_ARTISTS.artistID === artist.id,
             })} />

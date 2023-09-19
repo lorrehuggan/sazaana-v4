@@ -1,13 +1,12 @@
 "use client"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
+import { SubmitHandler, useForm } from "react-hook-form"
 import * as z from "zod"
 import clsx from "clsx"
 import {
   Form,
 } from "@/components/ui/form"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { AlertCircle, Loader, Search } from "lucide-react"
 import { Spinner } from "@nextui-org/react";
@@ -32,6 +31,20 @@ export default function Query() {
   const results = useRef<HTMLDivElement | null>(null)
   const CURRENT_ARTIST = useCurrentArtists((state) => state)
   const SET_QUERY = useCurrentQuery((state) => state.set)
+  const onSubmit: SubmitHandler<SearchFormValues> = async (values) => {
+    try {
+      setLoading(true)
+      const response = await fetch(`/api/artist/q?artist=${values.query}`)
+      const artist: Spotify.ArtistSearchResponse = await response.json()
+      if (!artist) return console.log("No artist found")
+      setData(artist)
+      setLoading(false)
+    } catch (error) {
+      form.reset()
+      setLoading(false)
+      console.log(error)
+    }
+  }
 
   const form = useForm<SearchFormValues>({
     resolver: zodResolver(schema),
@@ -51,28 +64,13 @@ export default function Query() {
   }, [SET_QUERY, queryValue])
 
 
-  async function onSubmit(values: SearchFormValues) {
-    try {
-      setLoading(true)
-      const response = await fetch(`/api/artist/q?artist=${values.query}`)
-      const artist: Spotify.ArtistSearchResponse = await response.json()
-      if (!artist) return console.log("No artist found")
-      setData(artist)
-      setLoading(false)
-    } catch (error) {
-      form.reset()
-      setLoading(false)
-      console.log(error)
-    }
-  }
-
   const debouncedSearch = debounce(onSubmit, 600);
 
   function handleOnChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setQueryValue(e.target.value)
     if (e.target.value.length < 2) return
     if (e.target.value.length > 25) return
     if (e.target.value.length === 0) return setData(null)
+    setQueryValue(e.target.value)
     // debouncedSearch({ query: e.target.value })
   }
 
@@ -125,6 +123,22 @@ export default function Query() {
             onChange={handleOnChange}
             autoComplete="off"
             name="query"
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                setData(null)
+                setQueryValue('')
+                SET_QUERY(false)
+                form.reset()
+              }
+              if (e.key === "Enter" && e.shiftKey === false) {
+                e.preventDefault()
+                if (queryValue.length === 0 || queryValue.length < 2 || queryValue.length > 25) {
+                  return form.trigger()
+                }
+                onSubmit({ query: queryValue })
+                return
+              }
+            }}
             placeholder={CURRENT_ARTIST.artistName ? `${CURRENT_ARTIST.artistName}` : "Search for an artist"}
             className="flex py-2 pr-3 w-full h-10 text-base rounded-md border-b lg:text-xl focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed bg-background placeholder:text-muted-foreground" />
           <Button disabled={loading} className="border-b" type="submit" size='icon' variant='ghost'>
