@@ -1,63 +1,48 @@
 "use client"
-import clsx from "clsx"
-import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { useEffect, useState } from "react"
+import clsx from "clsx"
 import { ArrowUpDown, Disc3 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Reorder } from "framer-motion"
+
+import Track from "./track";
+
 import { useCurrentTracks } from "@/lib/stores/tracks";
 import { useCurrentArtists } from "@/lib/stores/currentArtists";
-import { useQuery } from "@tanstack/react-query";
 import { useCurrentQuery } from "@/lib/stores/query";
-import Track from "./track";
 import useStore from "@/lib/hooks/useStore";
-import { StateStorage } from 'zustand/middleware'
 import { ScrollShadow } from "@nextui-org/react";
-import { Skeleton } from "@nextui-org/react";
 
 
 
-type Props = {
-  data: Spotify.TrackObjectFull[]
-}
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 export default function Tracklist() {
   const [dragging, setDragging] = useState<string | null>(null)
+  const [isLocal, setIsLocal] = useState(false)
   const CURRENT_ARTISTS_IDS = useStore(useCurrentArtists, (state) => state.artists.map((artist) => artist.id).join(','))
   const CURRENT_TRACKS = useStore(useCurrentTracks, (state) => state)
-  const { data, isLoading, isError } = useQuery<Spotify.TrackObjectFull[]>({
+  const { data, isLoading, isError } = useQuery < Array<Spotify.TrackObjectFull & { audio_features: Spotify.AudioFeaturesObject }>({
     queryKey: [`tracklist-${CURRENT_ARTISTS_IDS}`],
     queryFn: () => fetcher(`/api/recommendation?ids=${CURRENT_ARTISTS_IDS}`),
     refetchOnWindowFocus: false,
-    enabled: !!CURRENT_ARTISTS_IDS && useCurrentTracks.persist.hasHydrated(),
+    enabled: !!CURRENT_ARTISTS_IDS,
   })
   const QUERY = useCurrentQuery((state) => state)
   const [tracklistHover, setTracklistHover] = useState(false)
 
 
   useEffect(() => {
-    const cached = JSON.parse(localStorage.getItem('currentArtists')!)
-    if (cached) console.log(cached.state)
-
     if (!data) return
     CURRENT_TRACKS?.set(data)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data])
 
   function handleOnDragEnd(result: any) {
+    if (!result) return
     if (!CURRENT_TRACKS) return
-
-    setDragging(null)
-    if (!result.destination) return;
-    const items = Array.from(CURRENT_TRACKS.tracks);
-    const [reorderedItem] = items.splice(result.source.index, 1);
-    items.splice(result.destination.index, 0, reorderedItem);
-    CURRENT_TRACKS.set(items)
+    CURRENT_TRACKS.set(result)
   }
-
-  function handleOnDragStart(result: any) {
-    if (!result.draggableId) return;
-    setDragging(result.draggableId)
-  }
-
 
 
   return (
@@ -65,7 +50,7 @@ export default function Tracklist() {
       "opacity-10": QUERY.open,
     })}>
       <div className="flex gap-4 items-center p-2 text-muted">
-        {isLoading ? <div className="flex gap-1 items-center text-sm"> <Disc3 size={16} className="animate-spin" />Loading...</div> : (
+        {isLoading ? <div className="flex gap-1 items-center text-sm"> <Disc3 size={16} className="animate-spin" />Generating...</div> : (
           <>
             <div className="flex-1 mr-16">
               {dragging ? <ArrowUpDown size={14} /> :
@@ -84,7 +69,7 @@ export default function Tracklist() {
                 "opacity-0": dragging,
               })}>Album</p>
             </div>
-            <div className="hidden sm:flex">
+            <div className="flex-[0.1]">
               <p className={clsx("text-xs line-clamp-1 transition-all duration-300 ease-in-out", {
                 "opacity-0": dragging,
               })}>Time</p>
@@ -96,31 +81,26 @@ export default function Tracklist() {
         <div key={i} className={clsx("flex items-center gap-2 p-2", {
           "bg-muted/10": i % 2 === 0,
         })}>
-          <div className="w-12 h-12">
+          <div className="w-10 h-10">
           </div>
         </div>
       )) : (
         <div onMouseOver={() => setTracklistHover(true)} onMouseLeave={() => setTracklistHover(false)}>
-          <ScrollShadow className={clsx("lg:h-[610px] scrollbar-none scrollbar-thumb-muted/70 scrollbar-track-background transition-all duration-300 ease-in-out sm:scrollbar-thin", {
+          <ScrollShadow className={clsx("lg:max-h-[550px] scrollbar-none scrollbar-thumb-muted/70 scrollbar-track-background transition-all duration-300 ease-in-out sm:scrollbar-thin", {
             "sm:scrollbar-thumb-muted/50": tracklistHover,
             "sm:scrollbar-thumb-muted/0": !tracklistHover
           })} >
-            <DragDropContext onDragEnd={handleOnDragEnd} onDragStart={handleOnDragStart}>
-              <Droppable droppableId="tracklist">
-                {provided => (
-                  <ul className="mt-1" {...provided.droppableProps} ref={provided.innerRef}>
-                    {CURRENT_TRACKS && CURRENT_TRACKS.tracks && CURRENT_TRACKS.tracks.map((track, i) => (
-                      <Draggable key={track.id} draggableId={track.id} index={i}>
-                        {provided => (
-                          <Track provided={provided} track={track} i={i} dragging={dragging} />
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </ul>
-                )}
-              </Droppable>
-            </DragDropContext>
+            <Reorder.Group
+              layoutScroll
+              axis='y'
+              values={CURRENT_TRACKS?.tracks ?? []}
+              onReorder={handleOnDragEnd}>
+              {CURRENT_TRACKS && CURRENT_TRACKS.tracks && CURRENT_TRACKS.tracks.map((track, i) => (
+                <Reorder.Item key={track.id} value={track} onDrag={() => setDragging(track.id)} onDragEnd={() => setDragging(null)}>
+                  <Track track={track} i={i} dragging={dragging} />
+                </Reorder.Item>
+              ))}
+            </Reorder.Group>
           </ScrollShadow>
         </div>
       )}

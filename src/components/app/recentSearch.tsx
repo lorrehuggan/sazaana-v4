@@ -1,13 +1,15 @@
 "use client"
-import { useCurrentArtists } from "@/lib/stores/currentArtists"
+import { useEffect } from "react"
 import { useRouter } from 'next/navigation'
-import P from "../typography/P"
-import { CornerLeftUp, MoveHorizontal, Trash2, X } from "lucide-react"
+
 import clsx from "clsx"
+
 import { useCurrentQuery } from "@/lib/stores/query"
+import { useCurrentArtists } from "@/lib/stores/currentArtists"
 import { useCurrentTracks } from "@/lib/stores/tracks"
 import useStore from "@/lib/hooks/useStore"
-import { useEffect } from "react"
+
+import { CornerLeftUp, MoveHorizontal, Trash2, X } from "lucide-react"
 
 
 export default function RecentSearch() {
@@ -26,6 +28,8 @@ export default function RecentSearch() {
     if (!CURRENT_ARTISTS || !CURRENT_TRACKS) return
     CURRENT_ARTISTS.clear()
     CURRENT_TRACKS.clear()
+    useCurrentArtists.persist.clearStorage()
+    useCurrentTracks.persist.clearStorage()
     router.push('/create')
   }
 

@@ -7,6 +7,7 @@ import clsx from "clsx"
 import {
   Form,
 } from "@/components/ui/form"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { AlertCircle, Loader, Search } from "lucide-react"
 import { Spinner } from "@nextui-org/react";
@@ -28,9 +29,11 @@ export default function Query() {
   const [data, setData] = useState<Spotify.ArtistSearchResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [queryValue, setQueryValue] = useState<string>('')
+  const [currentArtistName, setCurrentArtistName] = useState<string | null>(null)
   const results = useRef<HTMLDivElement | null>(null)
   const CURRENT_ARTIST = useCurrentArtists((state) => state)
   const SET_QUERY = useCurrentQuery((state) => state.set)
+
   const onSubmit: SubmitHandler<SearchFormValues> = async (values) => {
     try {
       setLoading(true)
@@ -113,6 +116,13 @@ export default function Query() {
     })
   })
 
+  useEffect(() => {
+    const unsub = useCurrentArtists.subscribe((state) => {
+      setCurrentArtistName(state.artistName)
+    })
+    return () => unsub()
+  }, [])
+
 
   return (
     <div className="container">
@@ -139,7 +149,7 @@ export default function Query() {
                 return
               }
             }}
-            placeholder={CURRENT_ARTIST.artistName ? `${CURRENT_ARTIST.artistName}` : "Search for an artist"}
+            placeholder={currentArtistName ? `${currentArtistName}` : "Search for an artist"}
             className="flex py-2 pr-3 w-full h-10 text-base rounded-md border-b lg:text-xl focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed bg-background placeholder:text-muted-foreground" />
           <Button disabled={loading} className="border-b" type="submit" size='icon' variant='ghost'>
             {loading ? <Spinner /> : <Search />}

@@ -1,11 +1,13 @@
-import Nav from '@/components/app/nav'
 import './globals.css'
-import type { Metadata } from 'next'
+import { Toaster, toast } from 'sonner'
 import { Inter } from 'next/font/google'
+
+import Nav from '@/components/app/nav'
 import QueryClientProvider from '@/lib/providers/queryProvider'
 import NextUIClientProvider from '@/lib/providers/uiProvider'
 import { Footer } from '@/components/app/footer'
-import { Toaster, toast } from 'sonner'
+
+import type { Metadata } from 'next'
 
 
 
@@ -24,7 +26,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${inter.className} min-h-screen`}>
+      <body className={`${inter.className} min-h-screen scrollbar-thumb-muted/70 scrollbar-track-background scrollbar-thin`}>
         <Toaster theme='dark' position='bottom-center' />
         <QueryClientProvider>
           <NextUIClientProvider>

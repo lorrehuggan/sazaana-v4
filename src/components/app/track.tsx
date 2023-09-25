@@ -8,7 +8,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 type Props = {
-  provided: DraggableProvided
+  provided?: DraggableProvided
   track: Spotify.TrackObjectFull
   dragging: string | null
   i: number
@@ -24,7 +24,19 @@ export default function Track({ provided, track, dragging, i }: Props) {
   const trackId = track.id
   const trackUrl = track.external_urls.spotify
   const [state, setState] = useState('')
+  const [playingID, setPlayingID] = useState<string | null>(null)
+  const [trackNumber, setTrackNumber] = useState(i + 1)
 
+  useEffect(() => {
+    const unsub = useAudioPlayer.subscribe((state, prev) => {
+      if (state.playing) {
+        setPlayingID(state.trackDetails.id)
+      } else {
+        setPlayingID(null)
+      }
+    })
+    return () => unsub()
+  }, [])
 
   const sound = new Howl({
     src: [trackPreview ?? ''],
@@ -65,49 +77,6 @@ export default function Track({ provided, track, dragging, i }: Props) {
     },
   });
 
-
-  // function playAudio(id: string) {
-  //   const trackPreview = track.preview_url
-  //   const trackId = track.id
-  //
-  //   if (!trackPreview) return;
-  //
-  //   if (AUDIO_PLAYER.playing && AUDIO_PLAYER.trackDetails.id !== trackId) {
-  //     // stop current track and play new track
-  //     Howler.stop()
-  //     AUDIO_PLAYER.setPlaying(false)
-  //     AUDIO_PLAYER.set({
-  //       artist: "",
-  //       album: "",
-  //       albumArt: "",
-  //       track: "",
-  //       id: ""
-  //     })
-  //     return;
-  //
-  //   }
-  //
-  //   if (trackId === AUDIO_PLAYER.trackDetails.id) {
-  //     if (AUDIO_PLAYER.playing) {
-  //       Howler.stop()
-  //       AUDIO_PLAYER.setPlaying(false)
-  //       AUDIO_PLAYER.set({
-  //         artist: "",
-  //         album: "",
-  //         albumArt: "",
-  //         track: "",
-  //         id: ""
-  //       })
-  //     } else {
-  //       AUDIO_PLAYER.setPlaying(true)
-  //       sound.play()
-  //     }
-  //     return;
-  //   }
-  //
-  //   sound.play();
-  // }
-
   function stopAudio() {
     Howler.stop();
     AUDIO_PLAYER.setPlaying(false)
@@ -122,7 +91,6 @@ export default function Track({ provided, track, dragging, i }: Props) {
     setState('')
   }
 
-
   function playAudio(songUrl: string) {
     if (!songUrl) return;
     if (songUrl === state) {
@@ -134,45 +102,47 @@ export default function Track({ provided, track, dragging, i }: Props) {
       sound.play();
       return
     }
-    sound.play();
+    sound.play()
   }
 
   return (
-    <div {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef} key={track.id} className={clsx("flex items-center p-2 gap-4 group hover:bg-stone-800 color-fade", {
+    <div key={track.id} className={clsx("flex items-center p-2 gap-4 group sm:hover:bg-stone-800 color-fade", {
       "bg-muted/10": i % 2 === 0,
       "opacity-50": dragging === track.id,
-      "bg-stone-800": AUDIO_PLAYER.trackDetails.id === track.id,
+      "bg-stone-800": playingID === track.id,
+      "cursor-grabbing": dragging === track.id,
+      "cursor-grab": dragging !== track.id,
     })}>
       <div className="relative" onClick={() => playAudio(track.preview_url ?? '')}>
         {track.preview_url ? (
           <Play size={24} className={clsx("absolute top-1/2 left-1/2 z-50 opacity-0 transition-all duration-300 ease-in-out transform -translate-x-1/2 -translate-y-1/2 cursor-pointer mix-blend-difference", {
-            "opacity-0": AUDIO_PLAYER.trackDetails.id === track.id,
-            "group-hover:opacity-100": AUDIO_PLAYER.trackDetails.id !== track.id,
+            "opacity-0": playingID === track.id,
+            "sm:group-hover:opacity-100": playingID !== track.id,
           })} />
         ) : null}
         <div className="overflow-hidden bg-muted">
           { /* eslint-disable-next-line */}
-          {AUDIO_PLAYER.trackDetails.id === track.id ? (<div className={clsx("flex justify-center items-center w-12 h-12 transition-all duration-300 ease-in-out", {
-            "opacity-0": AUDIO_PLAYER.trackDetails.id !== track.id,
+          {playingID === track.id ? (<div className={clsx("flex justify-center items-center w-12 h-12 transition-all duration-300 ease-in-out", {
+            "opacity-0": playingID !== track.id,
           })}><Disc3 className="animate-spin" size={24} /></div>) :
             (
-              <img src={track.album.images[1].url} alt={track.name} className={clsx("object-cover w-12 h-12 transition-all duration-300 ease-in-out cursor-pointer grayscale group-hover:bg-muted group-hover:opacity-0", {
-                "grayscale-0": dragging === track.id,
+              <img src={track.album.images[1].url} alt={track.name} className={clsx("object-cover w-12 h-12 transition-all duration-300 ease-in-out cursor-pointer grayscale sm:group-hover:bg-muted sm:group-hover:opacity-0", {
+                "opacity-40": dragging === track.id,
               })} />
             )}
         </div>
       </div>
       <div className="flex-1">
-        <span className="text-sm line-clamp-1">{track.name}</span>
+        <span className="text-xs sm:text-sm line-clamp-1">{track.name}</span>
       </div>
       <div className="flex-1">
-        <a href={`/artist/${track.artists[0].id}`} className="inline-block text-sm cursor-pointer line-clamp-1 color-fade hover:text-stone-400">{track.artists[0].name}</a>
+        <span className="inline-block text-xs cursor-pointer sm:text-sm line-clamp-1 color-fade sm:hover:text-stone-400">{track.artists[0].name}</span>
       </div>
       <div className="hidden flex-1 sm:flex">
         <span className="text-sm line-clamp-1">{track.album.name}</span>
       </div>
-      <div className="hidden gap-2 items-center sm:flex">
-        <span className="text-sm">{convertMsToMinutesAndSeconds(track.duration_ms)}</span>
+      <div className="gap-2 items-center flex-[0.1]">
+        <span className="text-xs sm:text-sm">{convertMsToMinutesAndSeconds(track.duration_ms)}</span>
       </div>
     </div>
   )
