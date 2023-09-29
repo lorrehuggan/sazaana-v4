@@ -1,11 +1,15 @@
 "use client"
 
 import { useCurrentTracks } from "@/lib/stores/tracks";
+import { AlbumWithAudioFeatures, TrackWithFeatures } from "@/types/index";
 import { useEffect, useState } from "react";
+
+type SpotifyFeature = "acousticness" | "danceability" | "duration_ms" | "energy" | "instrumentalness" | "key" | "liveness" | "loudness" | "mode" | "speechiness" | "tempo" | "time_signature" | "valence";
 
 export default function UseFeaturesFilter() {
   const audioTracks = useCurrentTracks((state) => state.tracks);
-  const [filteredTracks, setFilteredTracks] = useState<Spotify.TrackObjectFull[] | []>([]);
+  const set = useCurrentTracks((state) => state.set);
+  const [filteredTracks, setFilteredTracks] = useState<TrackWithFeatures[] | []>([]);
   const [filterConfig, setFilterConfig] = useState({
     acousticness: [0, 1],
     danceability: [0, 1],
@@ -24,6 +28,7 @@ export default function UseFeaturesFilter() {
   });
 
   const updateFilterConfig = (feature: string, minValue: number, maxValue: number) => {
+    console.log(feature, minValue, maxValue);
     setFilterConfig({
       ...filterConfig,
       [feature]: [minValue, maxValue],
@@ -44,6 +49,7 @@ export default function UseFeaturesFilter() {
         });
       });
       setFilteredTracks(updatedFilteredTracks);
+      set(updatedFilteredTracks);
     }
   }, [filterConfig, audioTracks]);
 

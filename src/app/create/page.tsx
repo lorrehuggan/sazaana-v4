@@ -15,8 +15,8 @@ export default function Page() {
     <section className="container">
       {CURRENT_ARTIST.artists.length > 0 && (
         <>
-          <Filter />
-          {/* <Tracklist /> */}
+          {/* <Filter /> */}
+          <Tracklist />
         </>
       )}
       {AUDIO_PLAYER.open && (

@@ -60,7 +60,7 @@ export default function RecentSearch() {
   if (!CURRENT_TRACKS || !CURRENT_ARTISTS || !CURRENT_ARTISTS.artists.length) return null
 
   return (
-    <div className={clsx("container mt-4 transition-all duration-300 ease-in-out", {
+    <section className={clsx("container mt-4 transition-all duration-300 ease-in-out", {
       'opacity-10 pointer-events-none': QUERY.open,
     })}>
       <div className="flex justify-between items-center">
@@ -95,7 +95,7 @@ export default function RecentSearch() {
           </div>
         ))}
       </div>
-    </div>
+    </section>
   )
 
 }

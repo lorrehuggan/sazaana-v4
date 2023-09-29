@@ -125,7 +125,7 @@ export default function Query() {
 
 
   return (
-    <div className="container">
+    <section className="container">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex items-center">
           <label htmlFor="query" className="sr-only">Search</label>
@@ -181,6 +181,6 @@ export default function Query() {
           ))}
         </ScrollShadow>
       }
-    </div>
+    </section>
   )
 } 

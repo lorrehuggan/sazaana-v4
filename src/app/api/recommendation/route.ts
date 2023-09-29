@@ -51,12 +51,11 @@ export async function GET(request: Request) {
     const tracksWithAudioFeatures = tracks.map(track => {
       const audioFeature = audioFeatures.audio_features.find((audioFeature: Spotify.AudioFeaturesObject) => audioFeature.id === track.id)
       return {
-        ...track,
+        track: { ...track },
         audio_features: audioFeature
       }
     })
-    console.log(tracksWithAudioFeatures)
-    return NextResponse.json(tracks)
+    return NextResponse.json(tracksWithAudioFeatures)
   } catch (error: unknown) {
     console.error(error)
     return NextResponse.json({ error: 'Error while fetching artist', status: 500, message: 'Error while fetching artist', data: null })

@@ -12,17 +12,15 @@ import { useCurrentArtists } from "@/lib/stores/currentArtists";
 import { useCurrentQuery } from "@/lib/stores/query";
 import useStore from "@/lib/hooks/useStore";
 import { ScrollShadow } from "@nextui-org/react";
-
-
+import { AlbumWithAudioFeatures, TrackWithFeatures } from "@/types/index";
 
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 export default function Tracklist() {
   const [dragging, setDragging] = useState<string | null>(null)
-  const [isLocal, setIsLocal] = useState(false)
   const CURRENT_ARTISTS_IDS = useStore(useCurrentArtists, (state) => state.artists.map((artist) => artist.id).join(','))
   const CURRENT_TRACKS = useStore(useCurrentTracks, (state) => state)
-  const { data, isLoading, isError } = useQuery < Array<Spotify.TrackObjectFull & { audio_features: Spotify.AudioFeaturesObject }>({
+  const { data, isLoading, isError } = useQuery<Array<TrackWithFeatures>>({
     queryKey: [`tracklist-${CURRENT_ARTISTS_IDS}`],
     queryFn: () => fetcher(`/api/recommendation?ids=${CURRENT_ARTISTS_IDS}`),
     refetchOnWindowFocus: false,
@@ -40,13 +38,12 @@ export default function Tracklist() {
 
   function handleOnDragEnd(result: any) {
     if (!result) return
-    if (!CURRENT_TRACKS) return
-    CURRENT_TRACKS.set(result)
+    CURRENT_TRACKS?.set(result)
   }
 
 
   return (
-    <section className={clsx("mt-4 transition-all duration-300 ease-in-out", {
+    <div className={clsx("mt-4 transition-all duration-300 ease-in-out", {
       "opacity-10": QUERY.open,
     })}>
       <div className="flex gap-4 items-center p-2 text-muted">
@@ -94,16 +91,21 @@ export default function Tracklist() {
               layoutScroll
               axis='y'
               values={CURRENT_TRACKS?.tracks ?? []}
-              onReorder={handleOnDragEnd}>
-              {CURRENT_TRACKS && CURRENT_TRACKS.tracks && CURRENT_TRACKS.tracks.map((track, i) => (
-                <Reorder.Item key={track.id} value={track} onDrag={() => setDragging(track.id)} onDragEnd={() => setDragging(null)}>
-                  <Track track={track} i={i} dragging={dragging} />
+              onReorder={handleOnDragEnd}
+            >
+              {CURRENT_TRACKS && CURRENT_TRACKS.tracks && CURRENT_TRACKS.tracks.map((song, i) => (
+                <Reorder.Item
+                  key={song.track.id}
+                  value={song}
+                  onDrag={() => setDragging(song.track.id)}
+                  onDragEnd={() => setDragging(null)}>
+                  <Track track={song} i={i} dragging={dragging} />
                 </Reorder.Item>
               ))}
             </Reorder.Group>
           </ScrollShadow>
         </div>
       )}
-    </section>
+    </div>
   )
 }

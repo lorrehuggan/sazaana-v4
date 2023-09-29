@@ -22,7 +22,7 @@ export default function RootLayout({
 }) {
   return (
     <>
-      <div className="container my-8 space-y-3">
+      <section className="container my-8 space-y-3">
         {/* <H1>Discover Your Next Favorite Song</H1> */}
         <H1>{`"Threads of Sound"`}</H1>
         {/* <H2>Unearth Your Next Beloved Artist,</H2> */}
@@ -33,7 +33,7 @@ export default function RootLayout({
           and discover musical treasures like never before. With the power of strings and alchemy, 
           you're in control of your sound journey. Mix, match, and create your unique soundtrack—no limits, just pure musical magic.`}`
         </p>
-      </div>
+      </section>
       <Query />
       <RecentSearch />
       {children}
