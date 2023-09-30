@@ -12,16 +12,18 @@ export default function Page() {
 
   //TODO: playlist based on users recent or best tracks
   return (
-    <section className="container">
-      {CURRENT_ARTIST.artists.length > 0 && (
-        <>
-          {/* <Filter /> */}
-          <Tracklist />
-        </>
-      )}
-      {AUDIO_PLAYER.open && (
-        <AudioPlayer />
-      )}
-    </section>
+    <>
+      <section className="container">
+        {CURRENT_ARTIST.artists.length > 0 && (
+          <>
+            <Filter />
+            <Tracklist />
+          </>
+        )}
+        {AUDIO_PLAYER.open && (
+          <AudioPlayer />
+        )}
+      </section>
+    </>
   )
 }

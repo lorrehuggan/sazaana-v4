@@ -24,7 +24,7 @@ export const useCurrentTracks = create<initialState & Actions>()(
   persist((set, get) => ({
     tracks: [],
     add: (track: TrackWithFeatures) => set(state => ({ tracks: [...state.tracks, track] })),
-    remove: (id: string) => set(state => ({ tracks: state.tracks.filter(track => track.id !== id) })),
+    remove: (id: string) => set(state => ({ tracks: state.tracks.filter(track => track.track.id !== id) })),
     clear: () => set({ tracks: [], trackID: '', trackName: '' }),
     set: (tracks: TrackWithFeatures[]) => set({ tracks }),
     trackID: '',
@@ -33,6 +33,7 @@ export const useCurrentTracks = create<initialState & Actions>()(
     trackName: '',
     setName: (name: string) => set({ trackName: name }),
     removeName: () => set({ trackName: '' }),
+    filteredTracks: [],
   }), {
     name: 'currentTracks',
     skipHydration: true,

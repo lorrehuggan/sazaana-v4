@@ -12,7 +12,8 @@ import { useCurrentArtists } from "@/lib/stores/currentArtists";
 import { useCurrentQuery } from "@/lib/stores/query";
 import useStore from "@/lib/hooks/useStore";
 import { ScrollShadow } from "@nextui-org/react";
-import { AlbumWithAudioFeatures, TrackWithFeatures } from "@/types/index";
+import { TrackWithFeatures } from "@/types/index";
+import UseFeaturesFilter from "@/lib/hooks/useFeaturesFilter";
 
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -20,14 +21,17 @@ export default function Tracklist() {
   const [dragging, setDragging] = useState<string | null>(null)
   const CURRENT_ARTISTS_IDS = useStore(useCurrentArtists, (state) => state.artists.map((artist) => artist.id).join(','))
   const CURRENT_TRACKS = useStore(useCurrentTracks, (state) => state)
+  const QUERY = useCurrentQuery((state) => state)
+  const [tracklistHover, setTracklistHover] = useState(false)
+
   const { data, isLoading, isError } = useQuery<Array<TrackWithFeatures>>({
     queryKey: [`tracklist-${CURRENT_ARTISTS_IDS}`],
     queryFn: () => fetcher(`/api/recommendation?ids=${CURRENT_ARTISTS_IDS}`),
     refetchOnWindowFocus: false,
     enabled: !!CURRENT_ARTISTS_IDS,
   })
-  const QUERY = useCurrentQuery((state) => state)
-  const [tracklistHover, setTracklistHover] = useState(false)
+
+  const { filteredTracks, updateFilterConfig } = UseFeaturesFilter()
 
 
   useEffect(() => {
@@ -36,7 +40,7 @@ export default function Tracklist() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data])
 
-  function handleOnDragEnd(result: any) {
+  function handleOnDragEnd(result: TrackWithFeatures[]) {
     if (!result) return
     CURRENT_TRACKS?.set(result)
   }
@@ -82,29 +86,31 @@ export default function Tracklist() {
           </div>
         </div>
       )) : (
-        <div onMouseOver={() => setTracklistHover(true)} onMouseLeave={() => setTracklistHover(false)}>
-          <ScrollShadow className={clsx("lg:max-h-[550px] scrollbar-none scrollbar-thumb-muted/70 scrollbar-track-background transition-all duration-300 ease-in-out sm:scrollbar-thin", {
-            "sm:scrollbar-thumb-muted/50": tracklistHover,
-            "sm:scrollbar-thumb-muted/0": !tracklistHover
-          })} >
-            <Reorder.Group
-              layoutScroll
-              axis='y'
-              values={CURRENT_TRACKS?.tracks ?? []}
-              onReorder={handleOnDragEnd}
-            >
-              {CURRENT_TRACKS && CURRENT_TRACKS.tracks && CURRENT_TRACKS.tracks.map((song, i) => (
-                <Reorder.Item
-                  key={song.track.id}
-                  value={song}
-                  onDrag={() => setDragging(song.track.id)}
-                  onDragEnd={() => setDragging(null)}>
-                  <Track track={song} i={i} dragging={dragging} />
-                </Reorder.Item>
-              ))}
-            </Reorder.Group>
-          </ScrollShadow>
-        </div>
+        <>
+          <div onMouseOver={() => setTracklistHover(true)} onMouseLeave={() => setTracklistHover(false)}>
+            <ScrollShadow className={clsx("lg:max-h-[550px] scrollbar-none scrollbar-thumb-muted/70 scrollbar-track-background transition-all duration-300 ease-in-out sm:scrollbar-thin", {
+              "sm:scrollbar-thumb-muted/50": tracklistHover,
+              "sm:scrollbar-thumb-muted/0": !tracklistHover
+            })} >
+              <Reorder.Group
+                layoutScroll
+                axis='y'
+                values={CURRENT_TRACKS?.tracks ?? []}
+                onReorder={handleOnDragEnd}
+              >
+                {filteredTracks.map((song, i) => (
+                  <Reorder.Item
+                    key={song.track.id}
+                    value={song}
+                    onDrag={() => setDragging(song.track.id)}
+                    onDragEnd={() => setDragging(null)}>
+                    <Track track={song} i={i} dragging={dragging} />
+                  </Reorder.Item>
+                ))}
+              </Reorder.Group>
+            </ScrollShadow>
+          </div>
+        </>
       )}
     </div>
   )
