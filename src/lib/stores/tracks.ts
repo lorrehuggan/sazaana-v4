@@ -1,4 +1,3 @@
-
 import { AlbumWithAudioFeatures, TrackWithFeatures } from '@/types/index'
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
@@ -33,7 +32,6 @@ export const useCurrentTracks = create<initialState & Actions>()(
     trackName: '',
     setName: (name: string) => set({ trackName: name }),
     removeName: () => set({ trackName: '' }),
-    filteredTracks: [],
   }), {
     name: 'currentTracks',
     skipHydration: true,

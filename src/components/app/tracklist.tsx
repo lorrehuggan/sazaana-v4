@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import clsx from "clsx"
 import { ArrowUpDown, Disc3 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -13,7 +13,7 @@ import { useCurrentQuery } from "@/lib/stores/query";
 import useStore from "@/lib/hooks/useStore";
 import { ScrollShadow } from "@nextui-org/react";
 import { TrackWithFeatures } from "@/types/index";
-import UseFeaturesFilter from "@/lib/hooks/useFeaturesFilter";
+import { useFilteredTracks } from "@/lib/stores/filtered";
 
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -21,6 +21,7 @@ export default function Tracklist() {
   const [dragging, setDragging] = useState<string | null>(null)
   const CURRENT_ARTISTS_IDS = useStore(useCurrentArtists, (state) => state.artists.map((artist) => artist.id).join(','))
   const CURRENT_TRACKS = useStore(useCurrentTracks, (state) => state)
+  const FILTERED_TRACKS = useStore(useFilteredTracks, (state) => state)
   const QUERY = useCurrentQuery((state) => state)
   const [tracklistHover, setTracklistHover] = useState(false)
 
@@ -31,19 +32,28 @@ export default function Tracklist() {
     enabled: !!CURRENT_ARTISTS_IDS,
   })
 
-  const { filteredTracks, updateFilterConfig } = UseFeaturesFilter()
-
 
   useEffect(() => {
     if (!data) return
     CURRENT_TRACKS?.set(data)
+    FILTERED_TRACKS?.set(data)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data])
 
   function handleOnDragEnd(result: TrackWithFeatures[]) {
     if (!result) return
-    CURRENT_TRACKS?.set(result)
+    FILTERED_TRACKS?.set(result)
   }
+
+  const TRACKS = useMemo(() => {
+    if (!FILTERED_TRACKS?.tracks) {
+      return CURRENT_TRACKS?.tracks
+    } else if (FILTERED_TRACKS.tracks) {
+      return FILTERED_TRACKS.tracks
+    } else {
+      return []
+    }
+  }, [CURRENT_TRACKS?.tracks, FILTERED_TRACKS?.tracks])
 
 
   return (
@@ -95,10 +105,10 @@ export default function Tracklist() {
               <Reorder.Group
                 layoutScroll
                 axis='y'
-                values={CURRENT_TRACKS?.tracks ?? []}
+                values={FILTERED_TRACKS?.tracks ?? []}
                 onReorder={handleOnDragEnd}
               >
-                {filteredTracks.map((song, i) => (
+                {TRACKS?.map((song, i) => (
                   <Reorder.Item
                     key={song.track.id}
                     value={song}
