@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react"
 import clsx from "clsx"
 import { ArrowUpDown, Disc3 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { Reorder } from "framer-motion"
 
 import Track from "./track";
 
@@ -14,6 +13,9 @@ import useStore from "@/lib/hooks/useStore";
 import { ScrollShadow } from "@nextui-org/react";
 import { TrackWithFeatures } from "@/types/index";
 import { useFilteredTracks } from "@/lib/stores/filtered";
+
+import { DragDropContext, Droppable, Draggable, DropResult } from 'react-beautiful-dnd';
+
 
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
@@ -40,20 +42,14 @@ export default function Tracklist() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data])
 
-  function handleOnDragEnd(result: TrackWithFeatures[]) {
-    if (!result) return
-    FILTERED_TRACKS?.set(result)
+  function handleOnDragEnd(result: DropResult) {
+    if (!result.destination) return
+    const items = Array.from(FILTERED_TRACKS?.tracks ?? [])
+    const [reorderedItem] = items.splice(result.source.index, 1)
+    items.splice(result.destination.index, 0, reorderedItem)
+    FILTERED_TRACKS?.set(items)
   }
 
-  const TRACKS = useMemo(() => {
-    if (!FILTERED_TRACKS?.tracks) {
-      return CURRENT_TRACKS?.tracks
-    } else if (FILTERED_TRACKS.tracks) {
-      return FILTERED_TRACKS.tracks
-    } else {
-      return []
-    }
-  }, [CURRENT_TRACKS?.tracks, FILTERED_TRACKS?.tracks])
 
 
   return (
@@ -102,22 +98,24 @@ export default function Tracklist() {
               "sm:scrollbar-thumb-muted/50": tracklistHover,
               "sm:scrollbar-thumb-muted/0": !tracklistHover
             })} >
-              <Reorder.Group
-                layoutScroll
-                axis='y'
-                values={FILTERED_TRACKS?.tracks ?? []}
-                onReorder={handleOnDragEnd}
-              >
-                {TRACKS?.map((song, i) => (
-                  <Reorder.Item
-                    key={song.track.id}
-                    value={song}
-                    onDrag={() => setDragging(song.track.id)}
-                    onDragEnd={() => setDragging(null)}>
-                    <Track track={song} i={i} dragging={dragging} />
-                  </Reorder.Item>
-                ))}
-              </Reorder.Group>
+              <DragDropContext onDragEnd={(e) => handleOnDragEnd(e)}>
+                <Droppable droppableId="tracklist">
+                  {(provided) => (
+                    <div {...provided.droppableProps} ref={provided.innerRef}>
+                      {FILTERED_TRACKS?.tracks?.map((song, i) => (
+                        <Draggable key={song.track.id} draggableId={song.track.id} index={i}>
+                          {(provided) => (
+                            <div {...provided.draggableProps} {...provided.dragHandleProps} ref={provided.innerRef}>
+                              <Track track={song} i={i} dragging={dragging} />
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
             </ScrollShadow>
           </div>
         </>

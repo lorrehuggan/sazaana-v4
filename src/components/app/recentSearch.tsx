@@ -10,12 +10,14 @@ import { useCurrentTracks } from "@/lib/stores/tracks"
 import useStore from "@/lib/hooks/useStore"
 
 import { CornerLeftUp, MoveHorizontal, Trash2, X } from "lucide-react"
+import { useFilteredTracks } from "@/lib/stores/filtered"
 
 
 export default function RecentSearch() {
   const router = useRouter()
   const CURRENT_ARTISTS = useStore(useCurrentArtists, (state) => state)
   const CURRENT_TRACKS = useStore(useCurrentTracks, (state) => state)
+  const FILTERED_TRACKS = useStore(useFilteredTracks, (state) => state)
   const QUERY = useCurrentQuery((state) => state)
 
   useEffect(() => {
@@ -28,6 +30,7 @@ export default function RecentSearch() {
     if (!CURRENT_ARTISTS || !CURRENT_TRACKS) return
     CURRENT_ARTISTS.clear()
     CURRENT_TRACKS.clear()
+    FILTERED_TRACKS?.resetFilterConfig()
     useCurrentArtists.persist.clearStorage()
     useCurrentTracks.persist.clearStorage()
     router.push('/create')
